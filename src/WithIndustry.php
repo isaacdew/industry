@@ -28,9 +28,21 @@ trait WithIndustry
     ) {
         $this->industry = new Industry($this);
 
+        $useTestValues = app()->runningUnitTests();
+
         $states ??= collect([]);
 
-        $states->push(function (array $attributes) {
+        $states->push(function (array $attributes) use ($useTestValues) {
+            if ($useTestValues && ! $this->industry->forceGeneration) {
+                return array_map(function ($value) {
+                    if ($value instanceof IndustryDefinition) {
+                        return $value->getTestValue();
+                    }
+
+                    return $value;
+                }, $attributes);
+            }
+
             return $this->industry->buildSchema($attributes)
                 ->getState();
         });
@@ -52,5 +64,12 @@ trait WithIndustry
     public function getPrompt()
     {
         return $this->prompt;
+    }
+
+    public function forceGeneration($bool = true)
+    {
+        $this->industry->forceGeneration = $bool;
+
+        return $this;
     }
 }

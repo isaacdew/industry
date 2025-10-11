@@ -21,7 +21,7 @@ class MenuItemFactory extends Factory
      */
     protected $model = MenuItem::class;
 
-    protected $prompt = 'Suggest menu items for a pirate-themed restaurant. Return only the array of menu item objects.';
+    protected $prompt = 'Suggest menu items for a pirate-themed restaurant. Return only the array of 10 menu item objects.';
 
     /**
      * Define the model's default state.
@@ -31,8 +31,10 @@ class MenuItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->industry->describe('The name of the menu item.'),
-            'description' => $this->industry->describe('A description of the menu item.'),
+            'name' => $this->industry->describe('The name of the menu item.')
+                ->forTest($this->faker->word()),
+            'description' => $this->industry->describe('A description of the menu item.')
+                ->forTest($this->faker->sentence()),
             'calories' => random_int(100, 500),
             'price' => $this->faker->randomFloat(2, max: 50)
         ];

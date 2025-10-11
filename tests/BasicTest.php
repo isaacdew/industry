@@ -8,6 +8,6 @@ class BasicTest extends TestCase
 {
     public function test_ollama_structured_output()
     {
-        dd(MenuItem::factory(10)->make());
+        dd(MenuItem::factory(10)->forceGeneration()->make()->toArray());
     }
 }

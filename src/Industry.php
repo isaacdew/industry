@@ -18,6 +18,8 @@ class Industry
 
     protected $stateIndex = 0;
 
+    public $forceGeneration = false;
+
     public function __construct(protected Factory $factory) {}
 
     public function buildSchema($attributes)
@@ -65,7 +67,7 @@ class Industry
     }
 
     public function generate($count = 1)
-    {        
+    {   
         if ($this->data) {
             return $this->data;
         }
@@ -85,6 +87,10 @@ class Industry
             )
         );
 
+        /** TODO:
+         * 1. Implement a way for devs to modify the prism instance.
+         * 2. Add config or tap into prism config
+         * */
         $response = Prism::structured()
             ->using(Provider::Ollama, 'llama3.2')
             ->withSchema($schema)
@@ -96,8 +102,8 @@ class Industry
         return $this->data;
     }
 
-    public function describe($description)
+    public function describe($description, $required = true)
     {
-        return new IndustryDefinition($description);
+        return new IndustryDefinition($description, $required);
     }
 }
