@@ -101,3 +101,4 @@ Industry is still in the early stages of dev but there are a few more things I h
 - [ ] A suite of passing tests with > 90% coverage (of course!)
 - [ ] The ability to cache generated data to avoid provider calls for every reseed
 - [ ] A way to set Industry defaults on a factory and override them later
+- [ ] A beta release
