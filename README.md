@@ -1,6 +1,6 @@
 # Industry
 
-> Industry is still a work in progress and the API may change.
+> Industry is still a work in progress and the API may change. If you're interested in this project, give it a try and feel free to provide some suggestions or open a PR!
 
 Industry is a composer package that allows you to integrate your Laravel Eloquent Factories with AI to seed your database with realistic string data. This can be useful for product demos and manual QA.
 
