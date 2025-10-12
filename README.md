@@ -1,5 +1,7 @@
 # Industry
 
+> Industry is still a work in progress and the API may change.
+
 Industry is a composer package that allows you to integrate your Laravel Eloquent Factories with AI to seed your database with realistic string data. This can be useful for product demos and manual QA.
 
 It's built using [Prism](https://prismphp.com/) (you should check it out).
@@ -12,7 +14,7 @@ You can install Industry via composer:
 composer require isaacdew/industry
 ```
 
-Then publish Industry's config to set your default provider and model:
+Set your default provider and model with the `INDUSTRY_PROVIDER` and `INDUSTRY_MODEL` env variables. If you need to, you can publish Industry's config:
 
 ```bash
 php artisan vendor:publish --tag="industry-config"
@@ -25,7 +27,7 @@ php artisan vendor:publish --tag="prism-config"
 
 ## Usage
 
-To use Industry, use the `WithIndustry` trait on your factory, define a `public $prompt` property with the factory's base prompt and then call `$this->industry->describe` passing a description for each field you need generated text for.
+To use Industry, use the `WithIndustry` trait on your factory, define a `$prompt` property with the factory's base prompt and then call `$this->industry->describe` passing a description for each field you need generated text for.
 
 For example:
 
@@ -91,3 +93,11 @@ public function configurePrism(PendingRequest $prismRequest)
     ]);
 }
 ```
+
+## Roadmap
+
+Industry is still in the early stages of dev but there are a few more things I hope to add in the coming weeks (10/12/2025):
+
+- [ ] A suite of passing tests with > 90% coverage (of course!)
+- [ ] The ability to cache generated data to avoid provider calls for every reseed
+- [ ] A way to set Industry defaults on a factory and override them later
