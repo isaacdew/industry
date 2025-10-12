@@ -89,6 +89,7 @@ class Industry
 
         $prismRequest = Prism::structured()
             ->using(config('industry.provider'), config('industry.model'));
+            
         if (method_exists($this->factory, 'configurePrism')) {
             $this->factory->configurePrism($prismRequest);
         }

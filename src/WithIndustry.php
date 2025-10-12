@@ -43,7 +43,8 @@ trait WithIndustry
                 }, $attributes);
             }
 
-            return $this->industry->buildSchema($attributes)
+            return $this->industry
+                ->buildSchema($attributes)
                 ->getState();
         });
 

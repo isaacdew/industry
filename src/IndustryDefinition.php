@@ -10,17 +10,17 @@ class IndustryDefinition
 
     public function __construct(protected string $description, protected bool $required = true) {}
 
-    public function isRequired()
+    public function isRequired(): bool
     {
         return $this->required;
     }
 
-    public function toPrismSchema($name)
+    public function toPrismSchema($name): StringSchema
     {
         return new StringSchema($name, $this->description);
     }
 
-    public function forTest($value)
+    public function forTest($value): static
     {
         $this->testValue = $value;
 
