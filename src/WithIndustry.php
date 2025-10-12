@@ -26,7 +26,7 @@ trait WithIndustry
         ?bool $expandRelationships = null,
         array $excludeRelationships = [],
     ) {
-        $this->industry = new Industry($this);
+        $this->industry = new Industry($this, $count);
 
         $useTestValues = app()->runningUnitTests();
 

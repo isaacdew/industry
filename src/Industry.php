@@ -16,13 +16,18 @@ class Industry
 
     protected $data = null;
 
-    protected $stateIndex = 0;
+    protected int $stateIndex = 0;
 
-    public $forceGeneration = false;
+    protected ?int $count = null;
 
-    public function __construct(protected Factory $factory) {}
+    public bool $forceGeneration = false;
 
-    public function buildSchema($attributes)
+    public function __construct(protected Factory $factory, $count = null)
+    {
+        $this->count = $count ?? 1;
+    }
+
+    public function buildSchema($attributes): static
     {
         if (! empty($this->schema)) {
             return $this;
@@ -43,12 +48,12 @@ class Industry
         return $this;
     }
 
-    public function getSchema()
+    public function getSchema(): array
     {
         return $this->schema;
     }
 
-    public function getState()
+    public function getState(): mixed
     {
         if (! $this->data) {
             $this->generate();
@@ -66,7 +71,7 @@ class Industry
         return $data;
     }
 
-    public function generate($count = 1)
+    public function generate(): array
     {   
         if ($this->data) {
             return $this->data;
@@ -76,11 +81,13 @@ class Industry
 
         $prompt = $this->factory->getPrompt();
 
+        $singularTable = str()->singular($table);
+
         $schema = new ArraySchema(
             name: $table,
-            description: $prompt,
+            description: 'An array of '.$this->count.' '.str($singularTable)->plural($this->count),
             items: new ObjectSchema(
-                name: str()->singular($table),
+                name: $singularTable,
                 description: $prompt,
                 properties: $this->schema,
                 requiredFields: $this->requiredProperties
@@ -104,7 +111,7 @@ class Industry
         return $this->data;
     }
 
-    public function describe($description, $required = true)
+    public function describe($description, $required = true): IndustryDefinition
     {
         return new IndustryDefinition($description, $required);
     }

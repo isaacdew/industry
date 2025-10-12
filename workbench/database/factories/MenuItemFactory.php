@@ -21,7 +21,7 @@ class MenuItemFactory extends Factory
      */
     protected $model = MenuItem::class;
 
-    protected $prompt = 'Suggest menu items for a pirate-themed restaurant. Return only the array of 10 menu item objects.';
+    protected $prompt = 'Suggest menu items for a pirate-themed restaurant. Return only the array of menu item objects.';
 
     /**
      * Define the model's default state.
