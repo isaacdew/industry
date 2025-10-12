@@ -34,7 +34,7 @@ class MenuItemFactory extends Factory
 {
     use WithIndustry;
 
-    protected $prompt = 'Suggest menu items for an italian restaurant. Return only the array of 10 menu item objects.';
+    protected $prompt = 'Suggest menu items for an italian restaurant.';
 
     public function definition(): array
     {
@@ -71,3 +71,23 @@ public function definition(): array
 1. **Be sure to use a model that supports structured output.** Industry depends on structured output from the LLM which not all models are great at.
 
 2. **You may have to adjust the prompt to get only the structured data back.** Sometimes you may run into issues where your model generates the structured data perfectly well but returns some extraneous text like "Here you go:".
+
+### Modifying the Prism request
+
+You can modify the request that Prism makes to your LLM provider by defining a method on your factory called `configurePrism` that takes the Prism request. See [the Prism docs](https://prismphp.com/core-concepts/structured-output.html) for more on what's possible.
+
+```php
+use \Prism\Prism\Structured\PendingRequest;
+
+//...
+
+public function configurePrism(PendingRequest $prismRequest)
+{
+    // Enable OpenAI strict mode
+    $prismRequest->withProviderOptions([
+        'schema' => [
+            'strict' => true
+        ]
+    ]);
+}
+```
