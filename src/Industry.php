@@ -87,12 +87,13 @@ class Industry
             )
         );
 
-        /** TODO:
-         * 1. Implement a way for devs to modify the prism instance.
-         * 2. Add config or tap into prism config
-         * */
-        $response = Prism::structured()
-            ->using(Provider::Ollama, 'llama3.2')
+        $prismRequest = Prism::structured()
+            ->using(config('industry.provider'), config('industry.model'));
+        if (method_exists($this->factory, 'configurePrism')) {
+            $this->factory->configurePrism($prismRequest);
+        }
+
+        $response = $prismRequest
             ->withSchema($schema)
             ->withPrompt($prompt)
             ->asStructured();

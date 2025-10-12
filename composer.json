@@ -38,5 +38,12 @@
         "lint": [
             "@php vendor/bin/pint --ansi"
         ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Isaacdew\\Industry\\IndustryServiceProvider"
+            ]
+        }
     }
 }
