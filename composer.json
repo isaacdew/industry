@@ -1,6 +1,16 @@
 {
     "name": "isaacdew/industry",
-    "version": "0.0.1",
+    "description": "Industry is a composer package that allows you to integrate your Laravel Eloquent Factories with AI to seed your database with realistic string data. This can be useful for product demos and manual QA.",
+    "keywords": ["dev"],
+    "license": "MIT",
+    "archive": {
+        "exclude": [
+            "/tests",
+            "/workbench",
+            "/phpunit.xml",
+            "testbench.yaml"
+        ]
+    },
     "autoload": {
         "psr-4": {
             "Isaacdew\\Industry\\Tests\\": "tests/",

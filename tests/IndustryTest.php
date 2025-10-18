@@ -2,6 +2,7 @@
 
 namespace Isaacdew\Industry\Tests;
 
+use Isaacdew\Industry\Industry;
 use Isaacdew\Industry\IndustryDefinition;
 use Prism\Prism\Enums\FinishReason;
 use Prism\Prism\Enums\Provider;
@@ -16,6 +17,65 @@ use Workbench\Database\Factories\MenuItemFactory;
 
 class IndustryTest extends TestCase
 {
+    public function test_repeat_calls_use_cached_data()
+    {
+        $fakeResponse1 = StructuredResponseFake::make()
+            ->withText(json_encode([
+                [
+                    'name' => 'Test Menu Item',
+                    'description' => 'Test description',
+                ],
+            ], JSON_THROW_ON_ERROR))
+            ->withStructured([
+                [
+                    'name' => 'Test Menu Item',
+                    'description' => 'Test description',
+                ],
+            ])
+            ->withFinishReason(FinishReason::Stop);
+
+        $fakeResponse2 = StructuredResponseFake::make()
+            ->withText(json_encode([
+                [
+                    'name' => 'Another Menu Item',
+                    'description' => 'Another description',
+                ],
+            ], JSON_THROW_ON_ERROR))
+            ->withStructured([
+                [
+                    'name' => 'Another Menu Item',
+                    'description' => 'Another description',
+                ],
+            ])
+            ->withFinishReason(FinishReason::Stop);
+
+        Prism::fake([$fakeResponse1, $fakeResponse2]);
+
+        $menuItem1 = MenuItem::factory()
+            ->tapIndustry(fn ($industry) => $industry->useCache()->forceGeneration())
+            ->make();
+
+        $menuItem2 = MenuItem::factory()
+            ->tapIndustry(fn ($industry) => $industry->useCache()->forceGeneration())
+            ->make();
+
+        $this->assertEquals($menuItem1->name, $menuItem2->name);
+        $this->assertEquals($menuItem1->description, $menuItem2->description);
+    }
+
+    public function test_can_override_industry_attributes()
+    {
+        $menuItem = MenuItem::factory()
+            ->tapIndustry(fn ($industry) => $industry->forceGeneration())
+            ->make([
+                'name' => 'Custom Name',
+                'description' => 'Custom Description',
+            ]);
+
+        $this->assertEquals('Custom Name', $menuItem->name);
+        $this->assertEquals('Custom Description', $menuItem->description);
+    }
+
     public function test_schema_is_correctly_formed()
     {
         $fakeResponse = StructuredResponseFake::make()
@@ -36,7 +96,9 @@ class IndustryTest extends TestCase
         $fake = Prism::fake([$fakeResponse]);
 
         $factory = MenuItem::factory()
-            ->forceGeneration();
+            ->tapIndustry(function (Industry $industry) {
+                $industry->forceGeneration();
+            });
 
         $factory->make();
 
@@ -88,7 +150,10 @@ class IndustryTest extends TestCase
         $fake = Prism::fake([$fakeResponse]);
 
         $menuItem = MenuItem::factory()
-            ->forceGeneration()
+            ->tapIndustry(function (Industry $industry) {
+                $industry
+                    ->forceGeneration();
+            })
             ->make();
 
         $this->assertEquals('Test Menu Item', $menuItem->name);
@@ -118,16 +183,21 @@ class IndustryTest extends TestCase
 
         $factory = new class extends MenuItemFactory
         {
-            public function configurePrism(PendingRequest $pendingRequest)
+            public function configureIndustry(Industry $industry): static
             {
-                // Override the provider and such
-                $pendingRequest
-                    ->using(Provider::OpenAI, 'fake-model');
+                $industry->beforeRequest(function (PendingRequest $prismRequest) {
+                    // Enable OpenAI strict mode
+                    $prismRequest->using(Provider::OpenAI, 'fake-model');
+                });
+
+                return $this;
             }
         };
 
         $factory
-            ->forceGeneration()
+            ->tapIndustry(function (Industry $industry) {
+                $industry->forceGeneration();
+            })
             ->make();
 
         $fake->assertRequest(function ($requests) {

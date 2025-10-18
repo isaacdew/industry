@@ -20,7 +20,7 @@ class IndustryDefinition
         return new StringSchema($name, $this->description);
     }
 
-    public function forTest($value): static
+    public function fallback($value): static
     {
         $this->testValue = $value;
 

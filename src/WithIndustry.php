@@ -26,14 +26,18 @@ trait WithIndustry
         ?bool $expandRelationships = null,
         array $excludeRelationships = [],
     ) {
-        $this->industry = new Industry($this, $count);
+
+        /**
+         * Move this to a industry() method that is used to get the industry instance
+         */
+        $this->industry = new Industry($this, config('industry'), $count);
 
         $useTestValues = app()->runningUnitTests();
 
         $states ??= collect([]);
 
         $states->push(function (array $attributes) use ($useTestValues) {
-            if ($useTestValues && ! $this->industry->forceGeneration) {
+            if ($useTestValues && ! $this->industry->getForceGeneration()) {
                 return array_map(function ($value) {
                     if ($value instanceof IndustryDefinition) {
                         return $value->getTestValue();
@@ -67,9 +71,14 @@ trait WithIndustry
         return $this->prompt;
     }
 
-    public function forceGeneration($bool = true)
+    public function configureIndustry(Industry $industry)
     {
-        $this->industry->forceGeneration = $bool;
+        return $this;
+    }
+
+    public function tapIndustry(callable $callback): static
+    {
+        $callback($this->industry);
 
         return $this;
     }

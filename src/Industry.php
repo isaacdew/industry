@@ -3,15 +3,25 @@
 namespace Isaacdew\Industry;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Arr;
+use Isaacdew\Industry\Concerns\InteractsWithCache;
 use Prism\Prism\Prism;
 use Prism\Prism\Schema\ArraySchema;
 use Prism\Prism\Schema\ObjectSchema;
+use Prism\Prism\Structured\PendingRequest;
+use Prism\Prism\Structured\Response;
 
 class Industry
 {
-    protected array $schema = [];
+    use InteractsWithCache;
+
+    protected ?PendingRequest $prismRequest = null;
+
+    protected array $properties = [];
 
     protected array $requiredProperties = [];
+
+    protected array $beforeRequest = [];
 
     protected $data = null;
 
@@ -19,16 +29,18 @@ class Industry
 
     protected ?int $count = null;
 
-    public bool $forceGeneration = false;
+    protected bool $forceGeneration = false;
 
-    public function __construct(protected Factory $factory, $count = null)
+    public function __construct(protected Factory $factory, protected array $config, $count = null)
     {
         $this->count = $count ?? 1;
+
+        $this->factory->configureIndustry($this);
     }
 
-    public function buildSchema($attributes): static
+    public function buildSchema(array $attributes): static
     {
-        if (! empty($this->schema)) {
+        if (! empty($this->properties)) {
             return $this;
         }
 
@@ -37,7 +49,7 @@ class Industry
                 continue;
             }
 
-            $this->schema[] = $definition->toPrismSchema($attribute);
+            $this->properties[] = $definition->toPrismSchema($attribute);
 
             if ($definition->isRequired()) {
                 $this->requiredProperties[] = $attribute;
@@ -47,15 +59,10 @@ class Industry
         return $this;
     }
 
-    public function getSchema(): array
-    {
-        return $this->schema;
-    }
-
     public function getState(): mixed
     {
         if (! $this->data) {
-            $this->generate();
+            $this->data = $this->generate();
         }
 
         // Loop back to the beginning of the array if we run out
@@ -70,7 +77,7 @@ class Industry
         return $data;
     }
 
-    public function generate(): array
+    protected function generate(): array
     {
         if ($this->data) {
             return $this->data;
@@ -82,36 +89,102 @@ class Industry
 
         $singularTable = str()->singular($table);
 
-        $schema = new ArraySchema(
-            name: $table,
-            description: 'An array of '.$this->count.' '.str($singularTable)->plural($this->count),
-            items: new ObjectSchema(
-                name: $singularTable,
-                description: $prompt,
-                properties: $this->schema,
-                requiredFields: $this->requiredProperties
-            )
+        $objectSchema = new ObjectSchema(
+            name: $singularTable,
+            description: $prompt,
+            properties: $this->properties,
+            requiredFields: $this->requiredProperties
         );
 
-        $prismRequest = Prism::structured()
-            ->using(config('industry.provider'), config('industry.model'));
+        if ($this->config['cache']['enabled']) {
+            $objectSignature = $this->getCache()->objectSignature($singularTable, $prompt, $objectSchema);
 
-        if (method_exists($this->factory, 'configurePrism')) {
-            $this->factory->configurePrism($prismRequest);
+            return $this->getCache()->get(
+                get_class($this->factory),
+                $objectSignature,
+                $this->count,
+                function ($needed) use ($objectSchema, $prompt, $table) {
+                    $this->buildPrismRequest($prompt);
+
+                    return $this->executePrismRequest($objectSchema, $table, $needed)->structured;
+                }
+            );
         }
 
-        $response = $prismRequest
-            ->withSchema($schema)
-            ->withPrompt($prompt)
-            ->asStructured();
+        $this->buildPrismRequest($prompt);
 
-        $this->data = $response->structured;
-
-        return $this->data;
+        return $this->executePrismRequest($objectSchema, $table)->structured;
     }
 
     public function describe($description, $required = true): IndustryDefinition
     {
         return new IndustryDefinition($description, $required);
+    }
+
+    public function forceGeneration($bool = true)
+    {
+        $this->forceGeneration = $bool;
+
+        return $this;
+    }
+
+    public function getForceGeneration(): bool
+    {
+        return $this->forceGeneration;
+    }
+
+    public function beforeRequest(callable $callback): static
+    {
+        $this->beforeRequest[] = $callback;
+
+        return $this;
+    }
+
+    public function setConfig(array|string $config, $value = null): static
+    {
+        if (is_string($config)) {
+            Arr::set($this->config, $config, $value);
+
+            return $this;
+        }
+
+        $this->config = array_merge($this->config, $config);
+
+        return $this;
+    }
+
+    protected function buildPrismRequest(string $prompt): PendingRequest
+    {
+        if ($this->prismRequest) {
+            return $this->prismRequest;
+        }
+
+        $prismRequest = Prism::structured()
+            ->using($this->config['provider'], $this->config['model']);
+
+        // Process before request callbacks
+        if (! empty($this->beforeRequest)) {
+            foreach ($this->beforeRequest as $callback) {
+                $callback($prismRequest);
+            }
+        }
+
+        $this->prismRequest = $prismRequest
+            ->withPrompt($prompt);
+
+        return $this->prismRequest;
+    }
+
+    protected function executePrismRequest(ObjectSchema $schema, string $table, ?int $count = null): Response
+    {
+        $count ??= $this->count;
+
+        return $this->prismRequest
+            ->withSchema(new ArraySchema(
+                name: $table,
+                description: 'An array of '.$count.' '.str($table)->plural($count),
+                items: $schema
+            ))
+            ->asStructured();
     }
 }

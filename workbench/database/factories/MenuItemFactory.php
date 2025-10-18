@@ -33,9 +33,9 @@ class MenuItemFactory extends Factory
     {
         return [
             'name' => $this->industry->describe('The name of the menu item.')
-                ->forTest($this->faker->word()),
+                ->fallback($this->faker->word()),
             'description' => $this->industry->describe('A description of the menu item.')
-                ->forTest($this->faker->sentence()),
+                ->fallback($this->faker->sentence()),
             'calories' => random_int(100, 500),
             'price' => $this->faker->randomFloat(2, max: 50),
         ];
