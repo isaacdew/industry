@@ -14,6 +14,7 @@ use Workbench\App\Models\MenuItem;
 class MenuItemFactory extends Factory
 {
     use WithIndustry;
+
     /**
      * The name of the factory's corresponding model.
      *
@@ -21,7 +22,7 @@ class MenuItemFactory extends Factory
      */
     protected $model = MenuItem::class;
 
-    protected $prompt = 'Suggest menu items for a pirate-themed restaurant. Return only the array of menu item objects.';
+    public $prompt = 'Suggest menu items for a pirate-themed restaurant. Return only the array of menu item objects.';
 
     /**
      * Define the model's default state.
@@ -36,7 +37,7 @@ class MenuItemFactory extends Factory
             'description' => $this->industry->describe('A description of the menu item.')
                 ->forTest($this->faker->sentence()),
             'calories' => random_int(100, 500),
-            'price' => $this->faker->randomFloat(2, max: 50)
+            'price' => $this->faker->randomFloat(2, max: 50),
         ];
     }
 }

@@ -3,7 +3,6 @@
 namespace Isaacdew\Industry;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Prism\Prism\Enums\Provider;
 use Prism\Prism\Prism;
 use Prism\Prism\Schema\ArraySchema;
 use Prism\Prism\Schema\ObjectSchema;
@@ -72,7 +71,7 @@ class Industry
     }
 
     public function generate(): array
-    {   
+    {
         if ($this->data) {
             return $this->data;
         }
@@ -96,7 +95,7 @@ class Industry
 
         $prismRequest = Prism::structured()
             ->using(config('industry.provider'), config('industry.model'));
-            
+
         if (method_exists($this->factory, 'configurePrism')) {
             $this->factory->configurePrism($prismRequest);
         }

@@ -13,7 +13,8 @@
     },
     "require-dev": {
         "orchestra/testbench": "^10.6",
-        "phpunit/phpunit": "^12.3"
+        "phpunit/phpunit": "^12.3",
+        "phpunit/php-code-coverage": "^12.4"
     },
     "autoload-dev": {
         "psr-4": {

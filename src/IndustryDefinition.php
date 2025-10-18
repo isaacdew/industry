@@ -35,4 +35,9 @@ class IndustryDefinition
 
         return $this->testValue;
     }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
 }

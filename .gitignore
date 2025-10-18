@@ -1,4 +1,5 @@
 /vendor
 /.vscode
+/coverage-report
 .phpunit.cache/
 .DS_Store
