@@ -197,8 +197,8 @@ public function configureIndustry(Industry $industry)
 Industry is still in the early stages of dev but there are a few more things I hope to add in the coming weeks (10/12/2025):
 
 - [x] A suite of passing tests with > 90% coverage (of course!)
-- [ ] The ability to cache generated data to avoid provider calls for every reseed (*in progress*)
-- [ ] A way to set Industry defaults on a factory and override them later
+- [x] The ability to cache generated data to avoid provider calls for every reseed (*in progress*)
+- [x] A way to set Industry defaults on a factory and override them later
 - [ ] A beta release
 
 ## License
