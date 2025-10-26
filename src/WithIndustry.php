@@ -31,26 +31,26 @@ trait WithIndustry
          * Move this to a industry() method that is used to get the industry instance
          */
         $this->industry = new Industry($this, config('industry'), $count);
+        
+        if ($states) {
+            $useTestValues = app()->runningUnitTests();
 
-        $useTestValues = app()->runningUnitTests();
-
-        $states ??= collect([]);
-
-        $states->push(function (array $attributes) use ($useTestValues) {
-            if ($useTestValues && ! $this->industry->getForceGeneration()) {
-                return array_map(function ($value) {
-                    if ($value instanceof IndustryDefinition) {
-                        return $value->getTestValue();
-                    }
-
-                    return $value;
-                }, $attributes);
-            }
-
-            return $this->industry
-                ->buildSchema($attributes)
-                ->getState();
-        });
+            $states->push(function (array $attributes) use ($useTestValues) {
+                if ($useTestValues && ! $this->industry->getForceGeneration()) {
+                    return array_map(function ($value) {
+                        if ($value instanceof IndustryDefinition) {
+                            return $value->getTestValue();
+                        }
+    
+                        return $value;
+                    }, $attributes);
+                }
+    
+                return $this->industry
+                    ->buildSchema($attributes)
+                    ->getState();
+            });
+        }
 
         parent::__construct(
             $count,

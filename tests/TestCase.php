@@ -9,8 +9,9 @@ class TestCase extends \Orchestra\Testbench\TestCase
         parent::setUp();
 
         // Clear cache before each test
-        $cacheManager = new \Isaacdew\Industry\CacheManager;
-        $cacheManager->clearCache();
+        if (file_exists(database_path('industry_cache.sqlite'))) {
+            unlink(database_path('industry_cache.sqlite'));
+        }
     }
 
     protected function defineEnvironment($app)

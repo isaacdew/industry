@@ -17,6 +17,125 @@ use Workbench\Database\Factories\MenuItemFactory;
 
 class IndustryTest extends TestCase
 {
+    public function test_lazy_load_calls_llm_after_cache_exhausted()
+    {
+        $fakeResponse1 = StructuredResponseFake::make()
+            ->withText(json_encode([
+                [
+                    'name' => 'Test Menu Item 1',
+                    'description' => 'Test description 1',
+                ],
+            ], JSON_THROW_ON_ERROR))
+            ->withStructured([
+                [
+                    'name' => 'Test Menu Item 1',
+                    'description' => 'Test description 1',
+                ],
+            ])
+            ->withFinishReason(FinishReason::Stop);
+
+        $fakeResponse2 = StructuredResponseFake::make()
+            ->withText(json_encode([
+                [
+                    'name' => 'Test Menu Item 2',
+                    'description' => 'Test description 2',
+                ],
+            ], JSON_THROW_ON_ERROR))
+            ->withStructured([
+                [
+                    'name' => 'Test Menu Item 2',
+                    'description' => 'Test description 2',
+                ],
+            ])
+            ->withFinishReason(FinishReason::Stop);
+
+        $prism = Prism::fake([$fakeResponse1, $fakeResponse2]);
+
+        $menuItem1 = MenuItem::factory()
+            ->tapIndustry(fn ($industry) => $industry->useCache()->forceGeneration())
+            ->make();
+
+        $menuItems = MenuItem::factory(2)
+            ->tapIndustry(
+                fn ($industry) => $industry
+                    ->useCache()
+                    ->forceGeneration()
+                    ->setConfig('cache.strategy', 'lazy_load')
+            )
+            ->make();
+
+        $prism->assertCallCount(2);
+
+        // Assert that the first item is from cache 
+        $this->assertEquals($menuItem1->name, $menuItems[0]->name);
+        $this->assertEquals($menuItem1->description, $menuItems[0]->description);
+        
+        // ...and the second from the new LLM call
+        $this->assertEquals('Test Menu Item 2', $menuItems[1]->name);
+        $this->assertEquals('Test description 2', $menuItems[1]->description);
+    }
+
+    public function test_lazy_load_until_calls_llm_after_cache_exhausted_until_max_is_reached()
+    {
+        $fakeResponse1 = StructuredResponseFake::make()
+            ->withText(json_encode([
+                [
+                    'name' => 'Test Menu Item 1',
+                    'description' => 'Test description 1',
+                ],
+            ], JSON_THROW_ON_ERROR))
+            ->withStructured([
+                [
+                    'name' => 'Test Menu Item 1',
+                    'description' => 'Test description 1',
+                ],
+            ])
+            ->withFinishReason(FinishReason::Stop);
+
+        $fakeResponse2 = StructuredResponseFake::make()
+            ->withText(json_encode([
+                [
+                    'name' => 'Test Menu Item 2',
+                    'description' => 'Test description 2',
+                ],
+            ], JSON_THROW_ON_ERROR))
+            ->withStructured([
+                [
+                    'name' => 'Test Menu Item 2',
+                    'description' => 'Test description 2',
+                ],
+            ])
+            ->withFinishReason(FinishReason::Stop);
+
+        $prism = Prism::fake([$fakeResponse1, $fakeResponse2]);
+
+        $menuItem1 = MenuItem::factory()
+            ->tapIndustry(fn ($industry) => $industry->useCache()->forceGeneration())
+            ->make();
+
+        // Ask for 3 items, but only have 1 in cache and lazy_load_until set to 2
+        $menuItems = MenuItem::factory(3)
+            ->tapIndustry(
+                fn ($industry) => $industry
+                    ->useCache()
+                    ->forceGeneration()
+                    ->setConfig('cache.strategy', 'lazy_load')
+                    ->setConfig('cache.lazy_load_until', 2)
+            )
+            ->make();
+
+        // We expect 2 calls: one to get the first cached item, and one to get the second item from LLM
+        $prism->assertCallCount(2);
+
+        // Assert that the first item is from cache 
+        $this->assertEquals($menuItem1->name, $menuItems[0]->name);
+        $this->assertEquals($menuItem1->description, $menuItems[0]->description);
+        
+        // ...and the second from the new LLM call
+        $this->assertEquals('Test Menu Item 2', $menuItems[1]->name);
+        $this->assertEquals('Test description 2', $menuItems[1]->description);
+    }
+
     public function test_repeat_calls_use_cached_data()
     {
         $fakeResponse1 = StructuredResponseFake::make()
@@ -195,6 +314,7 @@ class IndustryTest extends TestCase
         };
 
         $factory
+            ->new()
             ->tapIndustry(function (Industry $industry) {
                 $industry->forceGeneration();
             })

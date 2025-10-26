@@ -73,8 +73,8 @@ class CacheManager
         $this->store($factory, $objectSignature, $newData);
 
         return array_merge(
+            $data,
             $newData,
-            $data
         );
     }
 
