@@ -134,6 +134,7 @@ class CacheManager
             'driver' => 'sqlite',
             'database' => config('industry.cache.database_path', database_path('industry_cache.sqlite')),
             'prefix' => '',
+            'foreign_key_constraints' => true,
         ]);
 
         return $this->connection;
@@ -170,7 +171,7 @@ class CacheManager
     public function clearCache(): void
     {
         $connection = $this->getConnection();
-        $connection->table('cache_data')->delete();
-        $connection->table('cache_meta')->delete();
+        $connection->table('cache_data')->truncate();
+        $connection->table('cache_meta')->truncate();
     }
 }

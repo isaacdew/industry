@@ -325,4 +325,92 @@ class IndustryTest extends TestCase
             $this->assertEquals('fake-model', $requests[0]->model());
         });
     }
+
+    public function test_clear_cache_command_clears_all_cache()
+    {
+        $cacheManager = new \Isaacdew\Industry\CacheManager();
+
+        $cacheManager->getConnection()
+            ->table('cache_meta')
+            ->insert([
+                'factory' => MenuItemFactory::class,
+                'object_signature' => 'test_signature',
+            ]);
+
+        $this->artisan('industry:clear-cache --all')
+            ->expectsOutput('All cached data has been cleared.')
+            ->assertExitCode(0);
+
+        $this->assertFalse(
+            $cacheManager->getConnection()
+                ->table('cache_meta')
+                ->exists()
+        );
+        
+        $this->assertFalse(
+            $cacheManager->getConnection()
+                ->table('cache_data')
+                ->exists()
+        );
+    }
+
+    public function test_clear_cache_command_clears_specific_factory_cache()
+    {
+        $cacheManager = new \Isaacdew\Industry\CacheManager();
+
+        $cacheManager->getConnection()
+            ->table('cache_meta')
+            ->insert([
+                [
+                    'factory' => MenuItemFactory::class,
+                    'object_signature' => 'test_signature',
+                ],
+                [
+                    'factory' => 'AnotherFactory',
+                    'object_signature' => 'another_signature',
+                ]
+            ]);
+
+        $cacheManager->getConnection()
+            ->table('cache_data')
+            ->insert([
+                [
+                    'meta_id' => 1,
+                    'content' => '',
+                ],
+                [
+                    'meta_id' => 2,
+                    'content' => '',
+                ],
+            ]);
+
+        $this->artisan('industry:clear-cache')
+            ->expectsQuestion(
+                'Select the factory whose cache you want to clear',
+                MenuItemFactory::class
+            )
+            ->expectsOutput('Cache for factory \''.MenuItemFactory::class.'\' has been cleared.')
+            ->assertExitCode(0);
+
+        $this->assertFalse(
+            $cacheManager->getConnection()
+                ->table('cache_meta')
+                ->where('factory', MenuItemFactory::class)
+                ->exists()
+        );
+
+        $this->assertFalse(
+            $cacheManager->getConnection()
+                ->table('cache_data')
+                ->where('meta_id', 1)
+                ->exists()
+        );
+
+        $this->assertTrue(
+            $cacheManager->getConnection()
+                ->table('cache_data')
+                ->where('id', 2)
+                ->exists()
+        );
+    }
 }
