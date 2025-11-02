@@ -14,6 +14,37 @@ You can install Industry via composer:
 composer require isaacdew/industry
 ```
 
+## Quick Start
+
+Update your `.env` file to set your provider, model and any related variables for your provider:
+
+```dotenv
+INDUSTRY_PROVIDER=ollama # options: anthropic, deepseek, gemini, openai (see https://prismphp.com/ for more options)
+INDUSTRY_MODEL=llama3.2
+
+# anthropic
+ANTHROPIC_API_KEY=
+ANTHROPIC_API_VERSION=
+
+# deepseek
+DEEPSEEK_API_KEY=
+DEEPSEEK_URL=
+
+# gemini
+GEMINI_API_KEY=
+
+# openai
+OPENAI_API_KEY=
+OPENAI_ORGANIZATION= # optional
+```
+
+Add the `WithIndustry` trait to your factory class, define a `protected $prompt` with your factory's base prompt and then call `$this->industry->describe` passing a description for each field you need generated text for. See [Usage](#usage) for an example.
+
+Then call your factory as you normally would!
+
+```php
+MenuItem::factory(5)->create();
+```
 
 ## Configuration
 
