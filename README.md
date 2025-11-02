@@ -37,7 +37,7 @@ And publish Prism's config to set provider config:
 php artisan vendor:publish --tag="prism-config"
 ```
 
-### Overriding Defaults for Specific Factories
+### Overriding defaults for specific factories
 
 You can override your config for specifc factories by defining a `configureIndustry` method on your factory that takes an `Isaacdew\Industry\Industry` instance. Then, inside of that method, calling the `->setConfig()` method on the instance. Here's an example:
 
@@ -143,6 +143,10 @@ This strategy will always ask your LLM for more data if there's not enough in th
 ```php
 $industry->setConfig('cache.lazy_load_until', 50);
 ```
+
+#### Clearing the cache
+
+You can clear the cache for a factory by running the `industry:clear-cache` command. It will ask which factory the cache should be cleared for. To clear all caches, use the `--all` flag.
 
 ### Some notes on prompts & structured output
 
