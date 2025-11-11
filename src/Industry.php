@@ -155,22 +155,16 @@ class Industry
 
     protected function buildPrismRequest(string $prompt): PendingRequest
     {
-        if ($this->prismRequest) {
-            return $this->prismRequest;
-        }
-
-        $prismRequest = Prism::structured()
-            ->using($this->config['provider'], $this->config['model']);
+        $this->prismRequest = Prism::structured()
+            ->using($this->config['provider'], $this->config['model'])
+            ->withPrompt($prompt);
 
         // Process before request callbacks
         if (! empty($this->beforeRequest)) {
             foreach ($this->beforeRequest as $callback) {
-                $callback($prismRequest);
+                $callback($this->prismRequest);
             }
         }
-
-        $this->prismRequest = $prismRequest
-            ->withPrompt($prompt);
 
         return $this->prismRequest;
     }

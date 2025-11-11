@@ -66,7 +66,7 @@ trait WithIndustry
         );
     }
 
-    public function getPrompt()
+    public function getPrompt(): string
     {
         return $this->prompt;
     }

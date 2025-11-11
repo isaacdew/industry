@@ -25,7 +25,7 @@ return [
     'cache' => [
         'enabled' => env('INDUSTRY_CACHE_ENABLED', true),
         'strategy' => env('INDUSTRY_CACHE_STRATEGY', 'recycle'), // recycle, lazy_load
-        'lazy_load_until' => env('INDUSTRY_CACHE_LAZY_LOAD_UNTIL', null),
+        'lazy_load_until' => (int) env('INDUSTRY_CACHE_LAZY_LOAD_UNTIL', null),
         'database_path' => env('INDUSTRY_CACHE_DATABASE_PATH', database_path('industry_cache.sqlite')),
     ],
 ];

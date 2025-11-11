@@ -11,7 +11,7 @@ It's built using [Prism](https://prismphp.com/) (you should check it out).
 You can install Industry via composer:
 
 ```bash
-composer require isaacdew/industry
+composer require isaacdew/industry --dev
 ```
 
 ## Quick Start
@@ -54,7 +54,7 @@ You can set Industry defaults in your `.env` file:
 INDUSTRY_PROVIDER=ollama
 INDUSTRY_MODEL=llama3.2
 INDUSTRY_CACHE_ENABLED=true
-INDUSTRY_CACHE_MODE=recycle
+INDUSTRY_CACHE_STRATEGY=recycle
 ```
 
 If you need to, you can publish Industry's config:
