@@ -52,21 +52,25 @@ class CacheManager
             return $data;
         }
 
-        // If using lazy_load, ask for more data until we get enough
-        $neededCount = $this->config['lazy_load_until']
-            ? max(0, $this->config['lazy_load_until'] - $dataCount)
-            : $count - $dataCount;
+        // Get the difference between what the factory call needs and what we have
+        $neededCount = $count - $dataCount;
 
-        if ($neededCount <= 0) {
-            return $data;
-        }
-
+        // Ask the LLM for more until we've reached the count OR the lazy_load_until value if it's set
         $newData = [];
-        while (count($newData) < $neededCount) {
+        while (($newCount = count($newData)) < $neededCount) {
+            // If lazy load until is enabled, and we've met or exceeded that amount, break the loop
+            if ($this->config['lazy_load_until'] && ($newCount + $dataCount) >= $this->config['lazy_load_until']) {
+                break;
+            }
+
             $newData = array_merge(
                 $newData,
                 $requestCallback($neededCount - count($newData))
             );
+
+            if (empty($newData)) {
+                throw new IndustryException('Failed to load more data from the LLM.');
+            }
         }
 
         // Save the new data to the cache
